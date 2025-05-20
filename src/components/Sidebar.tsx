@@ -30,14 +30,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const basePosition = side === 'left' ? 'left-0' : 'right-0';
   const slideIn = isOpen
-    ? 'translate-x-0'
+    ? 'translate-x-0 opacity-100'
     : side === 'left'
-    ? '-translate-x-full'
-    : 'translate-x-full';
+    ? '-translate-x-full opacity-0'
+    : 'translate-x-full opacity-0';
 
   return (
     <aside
-      className={`fixed top-0 ${basePosition} w-[80%] max-w-[20rem] h-full bg-choco-sidebar transition-transform duration-300 shadow-sidebar ${slideIn} z-50`}
+      className={`fixed top-0 ${basePosition} w-[80%] max-w-[20rem] h-full bg-choco-sidebar transition-all duration-300 shadow-sidebar ${slideIn} z-50`}
     >
       <SidebarContent>{children}</SidebarContent>
     </aside>

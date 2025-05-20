@@ -3,16 +3,28 @@
 import { Sidebar } from "@/components/Sidebar";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { HomeIcon, PackageIcon, ShoppingCart, Award, Info, Filter, PanelLeft, User, Milk, Cookie, CupSoda, Candy, LogIn, LogOut } from "lucide-react";
+import { HomeIcon, PackageIcon, ShoppingCart, Award, Info, Filter, PanelLeft, User, Cookie, LogIn, LogOut } from "lucide-react";
 import { Divider } from "@/components/Divider";
 import { RecommendationCard } from "@/components/reco";
 import { ProductCard } from "@/components/Product";
+
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  isSelected: boolean;
+}
+
 export default function Home() {
 
   const [leftOpen, setLeftOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const router = useRouter();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  
+
   const NavMenu = [
     {
       id: 1,
@@ -82,7 +94,53 @@ export default function Home() {
       discount: 10,
     },
   ];
-  
+
+  const toggleItemSelection = (itemId: string) => {
+    setCartItems(items =>
+      items.map(item =>
+        item.id === itemId
+          ? { ...item, isSelected: !item.isSelected }
+          : item
+      )
+    );
+  };
+
+  const updateQuantity = (itemId: string, newQuantity: number) => {
+    if (newQuantity >= 1) {
+      setCartItems(items =>
+        items.map(item =>
+          item.id === itemId
+            ? { ...item, quantity: newQuantity }
+            : item
+        )
+      );
+    }
+  };
+
+  const handleAddToCart = (name: string, price: number, quantity: number) => {
+    setCartItems(prevItems => {
+      // Check if item already exists in cart
+      const existingItemIndex = prevItems.findIndex(item => item.name === name);
+      
+      if (existingItemIndex >= 0) {
+        // Update quantity if item exists
+        return prevItems.map((item, index) => 
+          index === existingItemIndex 
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        // Add new item if it doesn't exist
+        return [...prevItems, {
+          id: String(prevItems.length + 1),
+          name,
+          price,
+          quantity,
+          isSelected: false
+        }];
+      }
+    });
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -127,13 +185,13 @@ export default function Home() {
         </div>
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 p-4">
         {/* hide login button if user is logged in */}
-          <button onClick={() => router.push('/login')} className="flex bg-choco-greenbtn text-white rounded-lg px-12 py-2 gap-2">
-            <LogIn className="size-6 my-auto" />
-            <p>Login</p>
+          <button onClick={() => router.push('/login')} className="flex bg-choco-greenbtn text-white rounded-lg px-12 py-2 gap-2 w-[14rem]">
+            <LogIn className="size-6 m-auto mr-0" />
+            <p className="m-auto ml-0">Login</p>
           </button>
-          <button onClick={() => router.push('/login')} className="flex bg-choco-redbtn text-white rounded-lg px-12 py-2 gap-2">
-            <LogOut className="size-6 my-auto" />
-            <p>Logout</p>
+          <button onClick={() => router.push('/login')} className="flex bg-choco-redbtn text-white rounded-lg px-12 py-2 gap-2 w-[14rem]">
+            <LogOut className="size-6 m-auto mr-0" />
+            <p className="m-auto ml-0">Logout</p>
           </button>
         </div>
       </Sidebar>
@@ -181,11 +239,11 @@ export default function Home() {
         </div>
 
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 p-4">
-          <button className="flex bg-choco-greenbtn text-white rounded-lg px-4 w-full">
-            <p>Apply Filters</p>
+          <button className="flex bg-choco-greenbtn text-white rounded-lg px-4 py-1 w-[14rem]">
+            <p className="m-auto">Apply Filters</p>
           </button>
-          <button className="flex bg-choco-redbtn text-white rounded-lg px-4 w-full">
-            <p>Reset Filters</p>
+          <button className="flex bg-choco-redbtn text-white rounded-lg px-4 py-1 w-[14rem]">
+            <p className="m-auto">Reset Filters</p>
           </button>
         </div>
       </Sidebar>
@@ -205,34 +263,92 @@ export default function Home() {
           </button>
         </div>
         <Divider />
-        <div className="flex flex-col gap-4">
-          {/* bg-selected for active */}
-          <h1>Cart Content</h1>
+        <div className="flex flex-col gap-4 py-4">
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-lg shadow cursor-pointer transition-all ${
+                item.isSelected ? 'bg-choco-selected' : 'bg-white hover:bg-gray-50'
+              }`}
+              onClick={() => toggleItemSelection(item.id)}
+            >
+              <div className="flex justify-between items-center mb-3">
+                <span>{item.name}</span>
+                <span className="font-bold">₱{item.price.toFixed(2)}</span>
+              </div>
+              
+              {item.isSelected ? (
+                <div className="flex justify-center items-center gap-4 bg-gray-200 rounded-full overflow-hidden w-fit mx-auto">
+                  <button 
+                    className="text-xl h-full w-full font-bold px-5 py-1 bg-choco-primary/10 hover:bg-choco-primary/20 transition-colors" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(item.id, item.quantity - 1);
+                    }}
+                  >
+                    −
+                  </button>
+                  <input 
+                    type="number" 
+                    className="text-lg w-10 text-center border-none outline-none" 
+                    value={item.quantity}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      const value = parseInt(e.target.value);
+                      if (!isNaN(value) && value >= 1) {
+                        updateQuantity(item.id, value);
+                      }
+                    }}
+                    min="1"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button 
+                    className="text-xl h-full w-full font-bold px-5 py-1 bg-choco-primary/10 hover:bg-choco-primary/20 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateQuantity(item.id, item.quantity + 1);
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-700 mt-2">Quantity: <span className="text-black">{item.quantity}</span></p>
+              )}
+            </div>
+          ))}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 p-4">
+            <button className="flex bg-choco-greenbtn text-white rounded-lg px-4 py-1 w-[14rem]">
+              <p className="m-auto">Proceed to Checkout</p>
+            </button>
+          </div>
         </div>
       </Sidebar>
 
-      {/* main content */}
-      <div className="flex flex-col p-8 gap-8">
-
-        {/* Header */}
-        <div className="flex w-full">
-          <div className="m-auto ml-0 justify-start">
-            <button onClick={() => setLeftOpen(!leftOpen)}>
-              <PanelLeft />
-            </button>
-          </div>
-          <div className="m-auto">
-          <h1 className="text-2xl font-semibold text-center">Chocomart 28</h1>
-          </div>
-          <div className="flex gap-4 m-auto mr-0 justify-end">
-          <button onClick={() => setFilterOpen(!filterOpen)}>
-            <Filter />
+      {/* Header */}
+      <div className="sticky top-0 h-20 px-8 bg-choco-bg z-40 flex w-full">
+        <div className="m-auto ml-0 justify-start">
+          <button onClick={() => setLeftOpen(!leftOpen)}>
+            <PanelLeft />
           </button>
-          <button onClick={() => setCartOpen(!cartOpen)}>
-            <ShoppingCart />
-          </button>
-          </div>
         </div>
+        <div className="m-auto">
+        <h1 className="text-2xl font-semibold text-center">Chocomart 28</h1>
+        </div>
+        <div className="flex gap-4 m-auto mr-0 justify-end">
+        <button onClick={() => setFilterOpen(!filterOpen)}>
+          <Filter />
+        </button>
+        <button onClick={() => setCartOpen(!cartOpen)}>
+          <ShoppingCart />
+        </button>
+        </div>
+      </div>
+      
+      {/* main content */}
+      <div className="flex flex-col p-8 pt-0 gap-8">
+
+
 
         {/* Recent Purchase */}
         <div className="m-auto flex flex-nowrap w-full md:w-[40rem] h-32 md:h-40 bg-choco-card rounded-lg overflow-hidden">
@@ -270,7 +386,13 @@ export default function Home() {
         <div className="">
           <div className="m-auto max-w-[40rem] flex flex-wrap justify-start gap-4">
             {ProductsMenu.map((item) => (
-              <ProductCard key={item.name} name={item.name} price={item.price} discount={item.discount} />
+              <ProductCard 
+                key={item.name} 
+                name={item.name} 
+                price={item.price} 
+                discount={item.discount}
+                onAddToCart={handleAddToCart}
+              />
             ))}
           </div>
         </div>
