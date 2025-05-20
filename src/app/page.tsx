@@ -2,7 +2,8 @@
 
 import { Sidebar } from "@/components/Sidebar";
 import { useState } from "react";
-import { HomeIcon, PackageIcon, ShoppingCart, Award, Info, Filter, PanelLeft, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { HomeIcon, PackageIcon, ShoppingCart, Award, Info, Filter, PanelLeft, User, Milk, Cookie, CupSoda, Candy, LogIn, LogOut } from "lucide-react";
 import { Divider } from "@/components/Divider";
 import { RecommendationCard } from "@/components/reco";
 import { ProductCard } from "@/components/Product";
@@ -11,8 +12,7 @@ export default function Home() {
   const [leftOpen, setLeftOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-
-
+  const router = useRouter();
   const NavMenu = [
     {
       id: 1,
@@ -49,28 +49,10 @@ export default function Home() {
   const FilterMenu = [
     {
       id: 1,
-      name: "Snacks",
+      name: "Filter Category Placeholder",
       href: "#",
-      icon: HomeIcon,
-    },
-    {
-      id: 2,
-      name: "Chocolates",
-      href: "#",
-      icon: HomeIcon,
-    },
-    {
-      id: 3,
-      name: "Drinks",
-      href: "#",
-      icon: HomeIcon,
-    },
-    {
-      id: 4,
-      name: "Milk",
-      href: "#",
-      icon: HomeIcon,
-    },
+      icon: Cookie,
+    }
   ]
 
   const ProductsMenu = [
@@ -143,13 +125,24 @@ export default function Home() {
             </a>
           ))}
         </div>
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 p-4">
+        {/* hide login button if user is logged in */}
+          <button onClick={() => router.push('/login')} className="flex bg-choco-greenbtn text-white rounded-lg px-12 py-2 gap-2">
+            <LogIn className="size-6 my-auto" />
+            <p>Login</p>
+          </button>
+          <button onClick={() => router.push('/login')} className="flex bg-choco-redbtn text-white rounded-lg px-12 py-2 gap-2">
+            <LogOut className="size-6 my-auto" />
+            <p>Logout</p>
+          </button>
+        </div>
       </Sidebar>
 
       {/* Navigation Sidebar; Filter SIDEBAR */}
       <Sidebar side="right" isOpen={filterOpen} toggleSidebar={() => setFilterOpen(!filterOpen)}>
         <div className="flex justify-between items-center p-4">
           <h1 className="m-auto ml-4 text-xl font-semibold capitalize">
-            Filter
+            Filters
           </h1>
           <button
             onClick={() => setFilterOpen(!filterOpen)}
@@ -161,13 +154,39 @@ export default function Home() {
         </div>
         <Divider />
         <div className="flex flex-col gap-4 py-4">
+          <h1 className="text-lg">Categories</h1>
           {/* bg-selected for active */}
-          {NavMenu.map((item) => (
+          {FilterMenu.map((item) => (
             <a key={item.id} href={item.href} className="flex py-2 pl-8 rounded-xl active:shadow-active">
               <item.icon className="size-6 my-auto" />
               <h1 className="my-auto pl-4 text-2xl font-medium">{item.name}</h1>
             </a>
           ))}
+        </div>
+        <Divider />
+        <div className="flex flex-col gap-4 py-4">
+          <h1 className="text-lg">Sort By:</h1>
+          <button className="flex py-2 pl-8 rounded-xl active:shadow-active">
+            <h1 className="my-auto text-lg font-medium">Price: Low to High</h1>
+          </button>
+          <button className="flex py-2 pl-8 rounded-xl active:shadow-active">
+            <h1 className="my-auto text-lg font-medium">Price: High to Low</h1>
+          </button>
+          <button className="flex py-2 pl-8 rounded-xl active:shadow-active">
+            <h1 className="my-auto text-lg font-medium">Name: A to Z</h1>
+          </button>
+          <button className="flex py-2 pl-8 rounded-xl active:shadow-active">
+            <h1 className="my-auto text-lg font-medium">Name: Z to A</h1>
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 flex flex-col gap-4 p-4">
+          <button className="flex bg-choco-greenbtn text-white rounded-lg px-4 w-full">
+            <p>Apply Filters</p>
+          </button>
+          <button className="flex bg-choco-redbtn text-white rounded-lg px-4 w-full">
+            <p>Reset Filters</p>
+          </button>
         </div>
       </Sidebar>
 
